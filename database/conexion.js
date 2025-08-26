@@ -1,17 +1,18 @@
-// const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
-// const db = mysql.createConnection(
-//     {
-//         host: '127.0.0.1',
-//         user: 'root',
-//         password: '03071593',
-//         database: 'colegio',
-//     }
-// );
+const db = mysql.createPool({
+  host: 'localhost',
+  user: 'root',
+  password: '03071593',
+  database: 'app_cuentos',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+});
 
 // db.connect((err) => {
-//     if(err) {
-//         throw err;
-//     }
-//     console.log('Base de datos conectado');
+//   if (err) throw err;
+//   console.log('✅ Conectado a MySQL');
 // });
+
+module.exports = db;

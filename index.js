@@ -1,4 +1,4 @@
-const express = require('express');
+/* const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
@@ -112,5 +112,36 @@ app.use("/estudiantes",estudiantesRoutes);
 
 app.listen(3000,() => {
     console.log('Servidor activo');
-});
+}); */
 
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const path = require('path');
+const usuarioRoutes = require('./routes/usuariosRoutes');
+const avatarRoutes = require('./routes/avatarsRoutes');
+app.use(cors());
+app.use(express.json());
+
+// Servir carpeta estática de imágenes con headers correctos
+app.use(
+  "/avatars",
+  express.static(path.join(__dirname, "avatars"), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".png")) {
+        res.setHeader("Content-Type", "image/png");
+      } else if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) {
+        res.setHeader("Content-Type", "image/jpeg");
+      } else if (filePath.endsWith(".gif")) {
+        res.setHeader("Content-Type", "image/gif");
+      }
+    },
+  })
+);
+
+// Rutas
+
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/avatars', avatarRoutes);
+
+module.exports = app;
