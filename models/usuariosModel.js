@@ -2,12 +2,17 @@ const db = require('../database/conexion');
 
 const Usuario = {
 
-  crear_usuario: async (nom_usu, pin, avatar) => {
+  crear_usuario: async (nombres,apellidos,nom_usu, pin, avatar) => {
     const [result] = await db.query(
-      "INSERT INTO usuarios (nom_usu, pin, avatar) VALUES (?, ?, ?)",
-      [nom_usu, pin, avatar]
+      "INSERT INTO usuarios (nombres, apellidos, nom_usu, pin, avatar) VALUES (?, ?, ?, ?, ?)",
+      [nombres,apellidos,nom_usu, pin, avatar]
     );
     return { id: result.insertId, nom_usu, pin, avatar };
+  },
+
+  logueo: async (nom_usu) => {
+    const [rows] = await db.query("SELECT * FROM usuarios WHERE nom_usu = ?", [nom_usu]);
+    return rows[0];
   },
 
   getAll: (callback) => {
