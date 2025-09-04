@@ -20,10 +20,13 @@ const Usuario = {
     db.query(sql, callback);
   },
 
-  getById: (id, callback) => {
-    const sql = 'SELECT id_usuario, nombre, apellidos, nom_usu, email, estado FROM usuarios WHERE id_usuario = ?';
-    db.query(sql, [id], callback);
-  }
+  getUsuId: async (id) => {
+    const [rows] = await db.query(
+      "SELECT * FROM usuarios WHERE id_usuario = ?",
+      [id]
+    );
+    return rows[0]; // devuelve un solo usuario
+  },
 };
 
 module.exports = Usuario;

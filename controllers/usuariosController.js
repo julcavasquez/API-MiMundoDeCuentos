@@ -47,10 +47,11 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-     console.log(user);
+     console.log("hola x aqui",user);
     // comparar contraseña
     const isMatch = await bcrypt.compare(pin, user.pin);
     if (!isMatch) {
+      console.log("contraseña incorrecta");
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
 
@@ -64,3 +65,27 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+
+exports.getUsuPerfil = async(req, res) =>{
+  try {
+    const { id } = req.params;
+
+    // Verificar que el usuario autenticado coincide con el solicitado
+    if (req.user.id != id) {
+      return res.status(403).json({ message: "Acceso denegado" });
+    }
+
+    const user = await Usuario.getUsuId(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error en getUserProfile:", error);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+}
+
