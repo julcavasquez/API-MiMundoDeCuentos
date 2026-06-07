@@ -1,23 +1,126 @@
 const db = require('../database/conexion');
+const bcrypt = require("bcryptjs");
 
 const Usuario = {
 
-  crear_usuario: async (nombres,apellidos,nom_usu, pin, avatar) => {
-    const [result] = await db.query(
-      "INSERT INTO usuarios (nombres, apellidos, nom_usu, pin, avatar) VALUES (?, ?, ?, ?, ?)",
-      [nombres,apellidos,nom_usu, pin, avatar]
-    );
-    return { id: result.insertId, nom_usu, pin, avatar };
+  crear_usuario: async (data) => {
+    const connection = await db.getConnection();
+
+    try {
+
+      await connection.beginTransaction();
+
+      // TABLA USUARIOS
+
+      const [userResult] = await connection.query(
+        `
+        INSERT INTO usuarios
+        (
+          rol_id,
+          nombres,
+          apellidos
+        )
+        VALUES (?, ?, ?)
+        `,
+        [
+          data.roleId,
+          data.nombres,
+          data.apellidos
+        ]
+      );
+
+      const usuarioId = userResult.insertId;
+
+      // ENCRIPTAR CLAVE
+
+      const hashedPassword =
+        await bcrypt.hash(data.password, 10);
+
+      // TABLA CREDENCIALES
+
+      await connection.query(
+        `
+        INSERT INTO credenciales_general
+        (
+          usuario_id,
+          correo,
+          clave_acceso
+        )
+        VALUES (?, ?, ?)
+        `,
+        [
+          usuarioId,
+          data.email,
+          hashedPassword
+        ]
+      );
+
+      await connection.commit();
+
+      return {
+        success: true,
+        usuarioId
+      };
+
+    } catch (error) {
+
+      await connection.rollback();
+
+      throw error;
+
+    } finally {
+
+      connection.release();
+
+    }
   },
 
-  logueo: async (nom_usu) => {
-    const [rows] = await db.query("SELECT * FROM usuarios WHERE nom_usu = ?", [nom_usu]);
-    return rows[0];
+  logueo: async (correo) => {
+    const sql = `
+    SELECT
+        u.id_usu,
+        u.rol_id,
+        u.nombres,
+        u.apellidos,
+        r.nombre AS rol,
+        cg.correo,
+        cg.clave_acceso
+      FROM usuarios u
+      INNER JOIN credenciales_general cg
+        ON u.id_usu = cg.usuario_id
+      INNER JOIN roles r
+        ON u.rol_id = r.id
+      WHERE cg.correo = ?
+      AND u.estado = 1
+      AND u.eliminado = 0`;
+
+      const [rows] =
+      await db.query(sql, [correo]);
+      return rows[0];
+      
   },
 
-  getAll: (callback) => {
-    const sql = 'SELECT id_usuario, nombre, apellidos, nom_usu, email, estado FROM usuarios WHERE estado != "eliminado"';
-    db.query(sql, callback);
+  getAllUsuarios: async () => {
+
+    const sql = `
+      SELECT
+        u.id_usu,
+        u.nombres,
+        u.apellidos,
+        r.nombre AS rol,
+        u.estado,
+        cg.correo
+      FROM usuarios u
+      INNER JOIN roles r
+        ON u.rol_id = r.id
+      LEFT JOIN credenciales_general cg
+        ON u.id_usu = cg.usuario_id
+      WHERE u.eliminado=0
+      ORDER BY u.id_usu DESC
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
+
   },
 
   getUsuId: async (id) => {
@@ -27,6 +130,33 @@ const Usuario = {
     );
     return rows[0]; // devuelve un solo usuario
   },
+
+  updateEstadoUsuario: async (id) => {
+    const sql = `
+      UPDATE usuarios
+      SET estado = IF(estado = 1, 0, 1)
+      WHERE id_usu = ?
+    `;
+
+    const [result] = await db.query(sql, [id]);
+
+    return result;
+
+  },
+
+  eliminacionLogica: async (id) => {
+
+    const sql = `
+      UPDATE usuarios
+      SET eliminado = 1
+      WHERE id_usu = ?
+    `;
+
+    const [result] = await db.query(sql, [id]);
+
+    return result;
+
+  }
 };
 
 module.exports = Usuario;

@@ -113,13 +113,13 @@ app.use("/estudiantes",estudiantesRoutes);
 app.listen(3000,() => {
     console.log('Servidor activo');
 }); */
-
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const path = require('path');
-const usuarioRoutes = require('./routes/usuariosRoutes');
-const avatarRoutes = require('./routes/avatarsRoutes');
+const rolesRoutes = require('./routes/rolesRoutes');
+const usuariosRoutes = require('./routes/usuariosRoutes');
 app.use(cors());
 app.use(express.json());
 
@@ -141,7 +141,7 @@ app.use(
 
 // Rutas
 
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/avatars', avatarRoutes);
+app.use('/api/roles', rolesRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 module.exports = app;
