@@ -156,7 +156,24 @@ const Usuario = {
 
     return result;
 
-  }
+  },
+
+  getAllTiposDoc: async () => {
+
+        const sql = `
+            SELECT
+                id_tdi,
+                nombre
+            FROM tipos_doc_identidad
+            WHERE estado = 1
+            ORDER BY nombre
+        `;
+
+        const [rows] = await db.query(sql);
+
+        return rows;
+
+    }
 };
 
 module.exports = Usuario;

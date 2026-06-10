@@ -193,3 +193,25 @@ exports.eliminarUsuario = async (req, res) => {
   }
 };
 
+exports.getTiposDocumentos = async (req, res) => {
+
+    try {
+
+        const data =
+        await Usuario.getAllTiposDoc();
+
+        res.status(200).json(data);
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message:
+            'Error al obtener tipos de documento'
+        });
+
+    }
+
+};
+
